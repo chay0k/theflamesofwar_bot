@@ -12,7 +12,7 @@ public static class Lobby
     private static List<Table> ActiveTables = new List<Table>();
     public static void CreateTable(User user)
     {
-
+        var playerNumber = 1;
         var sqlTableRepository = new SqlTableRepository();
         var table = new Table();
         table.Name = "Table1";
@@ -23,6 +23,14 @@ public static class Lobby
         table.Id = Guid.NewGuid();
 
         sqlTableRepository.Create(table);
+
+        var sqlTableCellRepository = new SqlTableCellRepository();
+        foreach (Cell cell in MapGenerator.map.Cells)
+        {
+            var tableCell = new TableCell(cell, table.Id);
+            sqlTableCellRepository.Create(tableCell);
+            sqlTableCellRepository.Save();
+        }
         sqlTableRepository.Save();
         var userSession = new UserSession();
         //userSession.Player = user;
@@ -32,6 +40,7 @@ public static class Lobby
         userSession.TableId = table.Id;
         userSession.DateTime = DateTime.Now;
         userSession.Location = 1;
+        userSession.PlayerNumber = playerNumber;
         var sqlSessionRepository = new SqlUserSessionRepository();
         sqlSessionRepository.Create(userSession);
         sqlSessionRepository.Save();
@@ -66,5 +75,14 @@ public static class Lobby
             if (session != null && session.Open)
                 return session;
         return new Table();
+    }
+
+    public static PlayerCondition retrievePlayerCondition(Models.User user, Table table)
+    {
+        if(user.IsEmpty() || table.IsEmpty())
+            return new PlayerCondition();
+
+        var conditionRep = new SqlPlayerConditionRepository();
+        return conditionRep.Get(user, table);
     }
 }

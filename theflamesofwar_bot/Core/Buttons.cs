@@ -37,7 +37,7 @@ public class Buttons
 
             MapGenerator.map = s.Get(mapGuid);
             MapGenerator.RestoreMap(MapGenerator.map);
-            MapButtonAsync(update.CallbackQuery.Message);
+            MapButtonAsync(update.CallbackQuery.Message, table);
 
         }
         else if (codeOfButton == "22")
@@ -46,7 +46,7 @@ public class Buttons
         }
         else if (codeOfButton == "move")
         {
-            MapButtonAsync(update.CallbackQuery.Message);
+            MapButtonAsync(update.CallbackQuery.Message, table);
             return;
         }
         else if (codeOfButton == "CreateNew")
@@ -55,7 +55,7 @@ public class Buttons
             var tr = new SqlTableRepository();
             tr.Update(table);
             tr.Save();
-            await Bot.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, "Make you choice", replyMarkup: ButtonsOld.CreateNewMap());
+            await Bot.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, "Make you choice", replyMarkup: BotButtonsProcessing.CreateNewMap());
             return;
         }
         else if (codeOfButton == "ChooseMap")
@@ -68,7 +68,7 @@ public class Buttons
             MapGenerator.CreateRandomMap();
             Lobby.CreateTable(user);
             CurrentPosition = 1;
-            MapButtonAsync(update.CallbackQuery.Message);
+            MapButtonAsync(update.CallbackQuery.Message, table);
         }
         else if (codeOfButton == "Reconnect")
         {
@@ -76,7 +76,7 @@ public class Buttons
 
             MapGenerator.map =  s.Get(table.MapId);
             MapGenerator.RestoreMap(MapGenerator.map);
-            MapButtonAsync(update.CallbackQuery.Message);
+            MapButtonAsync(update.CallbackQuery.Message, table);
         }
         else if (codeOfButton == "11" || codeOfButton == "12" || codeOfButton == "21" || codeOfButton == "23" || codeOfButton == "31" || codeOfButton == "32")
         {
@@ -85,7 +85,7 @@ public class Buttons
             {
                 if (result == 0)
                     return;
-                var land = GetLand(result, true);
+                var land = GetLand(result, true, table);
                 string telegramMessage = $"У ячійці {result} {land.Name}";
                 await botClient.SendTextMessageAsync(chatId: update.CallbackQuery.Message.Chat.Id, telegramMessage, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                 if (land.Passability == Passabilities.Impossible)
@@ -95,7 +95,7 @@ public class Buttons
                 }
                 else
                 {
-                    var thing = GetThing(result);
+                    var thing = GetThing(result, false, table);
                     if (thing.ThingType != "Nothing")
                     {
                         telegramMessage = $"Ви знайшли {thing.Name}";
@@ -103,7 +103,7 @@ public class Buttons
                     }
 
                     CurrentPosition = result;
-                    MapButtonAsync(update.CallbackQuery.Message);
+                    MapButtonAsync(update.CallbackQuery.Message, table);
                 }
             }
             else
@@ -114,11 +114,11 @@ public class Buttons
         }
         else if (codeOfButton == "observe")
         {
-            ObserveAround();
-            MapButtonAsync(update.CallbackQuery.Message);
+            ObserveAround(table);
+            MapButtonAsync(update.CallbackQuery.Message, table);
         }
     }
-    public async Task MapButtonAsync(Message msg)
+    public async Task MapButtonAsync(Message msg, Table table)
     {
         var evenLine = (CurrentPosition - 1) / 15 % 2 == 1;
         var firstInLine = CurrentPosition % 15 == 1;
@@ -186,12 +186,12 @@ public class Buttons
         string button31 = " ";
         string button32 = " ";
 
-        setButtonText(ref button11, button11Value);
-        setButtonText(ref button12, button12Value);
-        setButtonText(ref button21, button21Value);
-        setButtonText(ref button23, button23Value);
-        setButtonText(ref button31, button31Value);
-        setButtonText(ref button32, button32Value);
+        setButtonText(ref button11, button11Value, table);
+        setButtonText(ref button12, button12Value, table);
+        setButtonText(ref button21, button21Value, table);
+        setButtonText(ref button23, button23Value, table);
+        setButtonText(ref button31, button31Value, table);
+        setButtonText(ref button32, button32Value, table);
 
         var inlineKeyboard = new InlineKeyboardMarkup(new[]
                     {
@@ -259,48 +259,49 @@ public class Buttons
         }
         return false;
     }
-    private Land GetLand(int place, bool isOpen = false)
+    private Land GetLand(int place, bool isOpen, Table table)
     {
-        return GetCell(place, isOpen).Land;
+        return GetCell(place, isOpen, table).Land;
     }
-    private Thing GetThing(int place, bool isOpen = false)
+    private Thing GetThing(int place, bool isOpen, Table table)
     {
-        return GetCell(place, isOpen).Thing;
+        return GetCell(place, isOpen, table).Thing;
     }
-    private bool IsOpen(int place)
+    private bool IsOpen(int place, Table table)
     {
         if (place == null)
             return false;
-        var cell = GetCell(place, false);
+        var cell = GetCell(place, false, table);
         if (cell == null)
             return false;
         return cell.IsOpen;
     }
-    private Cell GetCell(int place, bool isOpen)
+    private TableCell GetCell(int place, bool isOpen, Table table)
     {
-        var cellRepository = new SqlCellRepository();
-        if (place == 0) return new Cell();
+        var tableCellRepository = new SqlTableCellRepository();
+        if (place == 0) return new TableCell();
         var y = (place - 1) / 15;
         var x = (place - 1) % 15;
-        var cell = MapGenerator.map.Cells[x, y];
+        //var cell = MapGenerator.map.Cells[x, y];
+        var cell = tableCellRepository.Get(table, x, y);
         if (cell != null && isOpen)
         {
             cell.IsOpen = true;
-            cellRepository.Update(cell);
-            cellRepository.Save();
+            tableCellRepository.Update(cell);
+            tableCellRepository.Save();
         }
         return cell;
     }
-    private void setButtonText(ref string button, int buttonValue)
+    private void setButtonText(ref string button, int buttonValue, Table table)
     {
         if (buttonValue != 0)
         {
             var pre = "";
             var post = "";
-            if (IsOpen(buttonValue))
+            if (IsOpen(buttonValue, table))
             {
-                pre = GetLand(buttonValue).Emoji;
-                post = GetThing(buttonValue).Emoji;
+                pre = GetLand(buttonValue, false, table).Emoji;
+                post = GetThing(buttonValue, false, table).Emoji;
             }
             button = $"{pre} {buttonValue.ToString()} {post}";
         }
@@ -320,14 +321,14 @@ public class Buttons
         await Bot.SendTextMessageAsync(msg.Chat.Id, "Оберіть дію:", replyMarkup: inlineKeyboard);
 
     }
-    public void ObserveAround()
+    public void ObserveAround(Table table)
     {
-        GetLand(button11Value, true);
-        GetLand(button12Value, true);
-        GetLand(button21Value, true);
-        GetLand(button23Value, true);
-        GetLand(button31Value, true);
-        GetLand(button32Value, true);
+        GetLand(button11Value, true, table);
+        GetLand(button12Value, true, table);
+        GetLand(button21Value, true, table);
+        GetLand(button23Value, true, table);
+        GetLand(button31Value, true, table);
+        GetLand(button32Value, true, table);
     }
     public InlineKeyboardMarkup CreateNewMap()
     {

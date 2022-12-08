@@ -9,6 +9,7 @@ public class UserSession
     [NotMapped] 
     public User Player { get; set; }
     public int Location { get; set; }
+    public int PlayerNumber { get; set; }
     public Guid TableId { get; set; }
     [NotMapped]
     public Table Table { get; set; }

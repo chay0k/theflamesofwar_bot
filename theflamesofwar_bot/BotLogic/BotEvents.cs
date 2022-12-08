@@ -8,7 +8,7 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types.ReplyMarkups;
 using theflamesofwar_bot.Core;
 
-namespace theflamesofwar_bot
+namespace theflamesofwar_bot.BotLogic
 {
     public static class BotEvents
     {
@@ -18,7 +18,7 @@ namespace theflamesofwar_bot
         {
             var currentUser = Authorisation.CurrentUser(update, Newtonsoft.Json.JsonConvert.SerializeObject(update));
             var currentTable = Lobby.searchActiveTables(currentUser);
-            var currentPlayerCondition = 
+            var currentPlayerCondition =  Lobby.retrievePlayerCondition(currentUser, currentTable);
 
             if (update.Type == Telegram.Bot.Types.Enums.UpdateType.Message)
             {
@@ -27,12 +27,12 @@ namespace theflamesofwar_bot
 
                 if (currentTable == null || currentTable.IsEmpty())
                 {       
-                    Bot.SendTextMessageAsync(message.Chat.Id, "Make you choice", replyMarkup: ButtonsOld.CreateNewMap());
+                    Bot.SendTextMessageAsync(message.Chat.Id, "Make you choice", replyMarkup: BotButtonsProcessing.CreateNewMap());
                     return;
                 }
                 else
                 {
-                    await Bot.SendTextMessageAsync(message.Chat.Id, "Make you choice", replyMarkup: ButtonsOld.LoadMap());
+                    await Bot.SendTextMessageAsync(message.Chat.Id, "Make you choice", replyMarkup: BotButtonsProcessing.LoadMap());
                 }
 
                 if (message.Type == Telegram.Bot.Types.Enums.MessageType.Photo)
@@ -46,16 +46,16 @@ namespace theflamesofwar_bot
                 }
                 else if (message.Text.ToLower() == "/restart")
                 {
-                    ButtonsOld.CurrentPosition = 1;
+                    BotButtonsProcessing.CurrentPosition = 1;
                     //MapGenerator.map.Cells[0, 0].IsOpen = true;
-                    ButtonsOld.MapButtonAsync(message);
+                    BotButtonsProcessing.MapButtonAsync(message, currentTable);
                 }
                 await botClient.SendTextMessageAsync(message.Chat, "Привіт-привіт!!");
             }
             else if (update.Type == Telegram.Bot.Types.Enums.UpdateType.CallbackQuery)
             {
                 string codeOfButton = update.CallbackQuery.Data;
-                ButtonsOld.UpdateStatusAsync(botClient, update, cancellationToken, codeOfButton, currentUser, currentTable);
+                BotButtonsProcessing.UpdateStatusAsync(botClient, update, cancellationToken, codeOfButton, currentUser, currentTable);
                 //Battlefield.UpdateStatusAsync(botClient, update, cancellationToken, codeOfButton, currentUser, currentTable);
             }
 

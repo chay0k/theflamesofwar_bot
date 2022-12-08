@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
-using Telegram.Bot.Types;
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Types.ReplyMarkups;
-using theflamesofwar_bot.Repositories;
+using theflamesofwar_bot.BotLogic;
 using theflamesofwar_bot.Core;
 
 namespace theflamesofwar_bot
@@ -27,7 +23,7 @@ namespace theflamesofwar_bot
                 AllowedUpdates = { }, // receive all update types
             };
             BotEvents.Bot = bot;
-            ButtonsOld.Bot = bot;
+            BotButtonsProcessing.Bot = bot;
             Battlefield.Bot = bot;
             bot.StartReceiving(
                 BotEvents.HandleUpdateAsync,

@@ -15,6 +15,7 @@ namespace theflamesofwar_bot.Contexts
         public DbSet<Thing> Things { get; set; }
         public DbSet<Map> Maps { get; set; }
         public DbSet<Cell> Cells { get; set; }
+        public DbSet<TableCell> TableCells { get; set; }
         public DbSet<Table> Tables { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }

@@ -12,7 +12,10 @@ namespace theflamesofwar_bot.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string TelegramUserName { get; set; }
-
+        public bool IsEmpty()
+        {
+            return Name == "";
+        }
 
     }
 }

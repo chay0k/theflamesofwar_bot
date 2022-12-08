@@ -14,7 +14,6 @@ namespace theflamesofwar_bot.Models
         public Map Map { get; set; }
         public bool Open { get; set; }
         public List<User> Users { get; set; }
-
         public bool IsEmpty()
         {
             return Name == "";

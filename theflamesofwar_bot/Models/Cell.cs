@@ -20,9 +20,7 @@ namespace theflamesofwar_bot.Models
         public Guid LandId { get; set; }
         public Guid MapID { get; set; }
         [NotMapped]
+        public int PlayerPosition { get; set; }
         public Map Map { get; set; } 
-
-        public bool IsOpen { get; set; } = false;
-
     }
 }

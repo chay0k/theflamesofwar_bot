@@ -29,6 +29,17 @@ namespace theflamesofwar_bot.Repositories
             return db.PlayerConditions.Find(id);
         }
 
+        public PlayerCondition Get(User user, Table table)
+        {
+            var currentplayerCondition = (from playerCondition in db.PlayerConditions
+                             where playerCondition.UserId == user.Id &&
+                             playerCondition.TableId == table.Id
+                             select playerCondition).FirstOrDefault();
+
+
+            return currentplayerCondition;
+        }
+
         public void Create(PlayerCondition playerCondition)
         {
             db.PlayerConditions.Add(playerCondition);

@@ -45,8 +45,5 @@ public static class Authorisation
 
     }
 
-    public static PlayerCondition retrievePlayerCondition(Models.User user, Table table)
-    {
-        return new PlayerCondition();
-    }
+
 }
